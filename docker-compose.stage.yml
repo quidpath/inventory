@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_inventory_stage
+    restart: unless-stopped
+    volumes:
+      - /mnt/quidpath-inventory-db-stage/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - inventory_network
+      - quidpath_network
+
+  backend:
+    image: ${IMAGE_TAG}
+    container_name: inventory-backend-stage
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8015:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env.stage
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      SECRET_KEY: ${SECRET_KEY}
+      SERVICE_SECRET: ${SERVICE_SECRET}
+      DJANGO_SETTINGS_MODULE: inventory_service.settings.stage
+      DJANGO_ENV: stage
+    volumes:
+      - /mnt/quidpath-inventory-stage-data/media:/app/media
+      - /mnt/quidpath-inventory-stage-data/staticfiles:/app/staticfiles
+    networks:
+      - inventory_network
+      - quidpath_network
+
+networks:
+  inventory_network:
+    name: inventory_stage_network
+    driver: bridge
+  quidpath_network:
+    external: true
+    name: stage_quidpath_network
