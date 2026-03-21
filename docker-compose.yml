@@ -1,5 +1,3 @@
-name: inventory-prod
-
 services:
   db:
     image: postgres:15
