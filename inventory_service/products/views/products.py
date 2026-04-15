@@ -8,6 +8,7 @@ from inventory_service.core.utils.request_parser import get_clean_data
 from inventory_service.core.utils.response import ResponseProvider
 from inventory_service.core.utils.log_base import TransactionLogBase
 from inventory_service.core.services.registry import ServiceRegistry
+from inventory_service.core.utils.pagination import paginate_qs
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +24,8 @@ def product_list_create(request):
     registry = ServiceRegistry()
     if request.method == "GET":
         q = Q(corporate_id=corporate_id)
-        search = data.get("search") or request.GET.get("search")
-        if search:
+        search = data.get("search") or request.GET.get("search", "")
+        if search and search.strip():
             q &= Q(name__icontains=search) | Q(barcode__icontains=search) | Q(internal_reference__icontains=search)
         if data.get("type") or request.GET.get("type"):
             q &= Q(product_type=data.get("type") or request.GET.get("type"))
@@ -32,10 +33,12 @@ def product_list_create(request):
             q &= Q(category_id=data.get("category") or request.GET.get("category"))
         is_active = data.get("is_active") if "is_active" in data else request.GET.get("is_active")
         if is_active is not None:
-            q &= Q(is_active=is_active.lower() == "true")
-        items = registry.database("product", "filter", data=q)
-        count = len(items) if isinstance(items, list) else 0
-        return ResponseProvider.success_response(data={"count": count, "results": items}, status=200)
+            q &= Q(is_active=is_active.lower() == "true" if isinstance(is_active, str) else bool(is_active))
+        from inventory_service.products.models import Product
+        qs = Product.objects.filter(q).order_by("name")
+        page_qs, meta = paginate_qs(qs, request)
+        items = registry.serialize_data(page_qs)
+        return ResponseProvider.success_response(data={"results": items, **meta}, status=200)
     if request.method != "POST":
         return ResponseProvider.method_not_allowed(["GET", "POST"])
     create_data = {k: v for k, v in data.items() if k in (

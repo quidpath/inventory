@@ -77,7 +77,14 @@ DATABASES = {
 
 JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", SECRET_KEY)
 
+# Service URLs for integration
 ERP_BACKEND_URL = os.environ.get("ERP_BACKEND_URL", "http://django-backend:8000")
+POS_SERVICE_URL = os.environ.get("POS_SERVICE_URL", "http://pos-backend:8000")
+CRM_SERVICE_URL = os.environ.get("CRM_SERVICE_URL", "http://crm-backend:8000")
+HRM_SERVICE_URL = os.environ.get("HRM_SERVICE_URL", "http://hrm-backend:8000")
+PROJECTS_SERVICE_URL = os.environ.get("PROJECTS_SERVICE_URL", "http://projects-backend:8000")
+
+# Service authentication
 SERVICE_API_KEY = os.environ.get("SERVICE_API_KEY", "")
 INVENTORY_SERVICE_SECRET = os.environ.get("INVENTORY_SERVICE_SECRET", "")
 
