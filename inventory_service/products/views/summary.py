@@ -1,0 +1,120 @@
+"""
+Inventory Dashboard Summary with period-over-period comparisons
+"""
+from decimal import Decimal
+from datetime import timedelta
+from django.db import models
+from django.db.models import Sum, Count, Q, F
+from django.utils import timezone
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from inventory_service.products.models import Product
+from inventory_service.stock.models import StockMovement
+from inventory_service.warehouse.models import Warehouse
+
+
+@api_view(["GET"])
+def inventory_summary(request):
+    """
+    Returns inventory metrics with period-over-period comparisons.
+    Compares current month vs previous month.
+    """
+    cid = request.corporate_id
+    
+    # Current period (this month)
+    now = timezone.now()
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    # Previous period (last month)
+    if month_start.month == 1:
+        prev_month_start = month_start.replace(year=month_start.year - 1, month=12)
+    else:
+        prev_month_start = month_start.replace(month=month_start.month - 1)
+    prev_month_end = month_start - timedelta(seconds=1)
+    
+    # Helper functions
+    def calc_change(current, previous):
+        if previous > 0:
+            return round(float(((current - previous) / previous) * 100), 1)
+        return 0.0
+    
+    def get_trend(change):
+        if change > 0:
+            return "up"
+        elif change < 0:
+            return "down"
+        return "neutral"
+    
+    # Total Products
+    total_products = Product.objects.filter(corporate_id=cid, is_active=True).count()
+    prev_products = Product.objects.filter(
+        corporate_id=cid,
+        is_active=True,
+        created_at__lt=month_start
+    ).count()
+    products_change = calc_change(total_products, prev_products)
+    
+    # Total Inventory Value
+    products = Product.objects.filter(corporate_id=cid, is_active=True)
+    total_value = sum(
+        (p.quantity_on_hand or 0) * (p.cost_price or Decimal('0'))
+        for p in products
+    )
+    
+    # Previous month value (approximate - using products that existed then)
+    prev_products_qs = Product.objects.filter(
+        corporate_id=cid,
+        is_active=True,
+        created_at__lt=month_start
+    )
+    prev_total_value = sum(
+        (p.quantity_on_hand or 0) * (p.cost_price or Decimal('0'))
+        for p in prev_products_qs
+    )
+    value_change = calc_change(float(total_value), float(prev_total_value))
+    
+    # Low Stock Items (quantity below reorder level)
+    low_stock_items = Product.objects.filter(
+        corporate_id=cid,
+        is_active=True,
+        quantity_on_hand__lte=F('reorder_level')
+    ).count()
+    
+    # Previous low stock count
+    prev_low_stock = Product.objects.filter(
+        corporate_id=cid,
+        is_active=True,
+        created_at__lt=month_start,
+        quantity_on_hand__lte=F('reorder_level')
+    ).count()
+    low_stock_change = calc_change(low_stock_items, prev_low_stock)
+    
+    # Warehouses Count
+    warehouses_count = Warehouse.objects.filter(corporate_id=cid, is_active=True).count()
+    
+    # Stock Movements This Month
+    movements_this_month = StockMovement.objects.filter(
+        corporate_id=cid,
+        created_at__gte=month_start
+    ).count()
+    
+    return Response({
+        "total_products": total_products,
+        "total_products_previous": prev_products,
+        "total_products_change": products_change,
+        "total_products_trend": get_trend(products_change),
+        
+        "total_value": float(total_value),
+        "total_value_previous": float(prev_total_value),
+        "total_value_change": value_change,
+        "total_value_trend": get_trend(value_change),
+        
+        "low_stock_items": low_stock_items,
+        "low_stock_items_previous": prev_low_stock,
+        "low_stock_items_change": low_stock_change,
+        "low_stock_items_trend": get_trend(low_stock_change),
+        
+        "warehouses_count": warehouses_count,
+        "movements_this_month": movements_this_month,
+    })

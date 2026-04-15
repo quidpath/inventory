@@ -19,8 +19,10 @@ from .views.products import (
     variant_detail,
     variant_list_create,
 )
+from .views.summary import inventory_summary
 
 urlpatterns = [
+    path("summary/", inventory_summary, name="inventory_summary"),
     path("", product_list_create),
     path("<uuid:pk>/", product_detail),
     path("<uuid:product_pk>/variants/", variant_list_create),
