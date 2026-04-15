@@ -46,13 +46,27 @@ jobs:
 
           add SECRET_KEY "${{ secrets.SECRET_KEY }}"
           add JWT_SECRET_KEY "${{ secrets.JWT_SECRET_KEY }}"
+          # Own secret
           add INVENTORY_SERVICE_SECRET "${{ secrets.INVENTORY_SERVICE_SECRET }}"
+          # Cross-service secrets
+          add ERP_SERVICE_SECRET "${{ secrets.ERP_SERVICE_SECRET }}"
+          add POS_SERVICE_SECRET "${{ secrets.POS_SERVICE_SECRET }}"
+          add CRM_SERVICE_SECRET "${{ secrets.CRM_SERVICE_SECRET }}"
+          add HRM_SERVICE_SECRET "${{ secrets.HRM_SERVICE_SECRET }}"
+          add PROJECTS_SERVICE_SECRET "${{ secrets.PROJECTS_SERVICE_SECRET }}"
+          add BILLING_SERVICE_SECRET "${{ secrets.BILLING_SERVICE_SECRET }}"
+          # Database
           add POSTGRES_DB "${{ secrets.INVENTORY_POSTGRES_DB_STAGE }}"
           add POSTGRES_USER "${{ secrets.INVENTORY_POSTGRES_USER_STAGE }}"
           add POSTGRES_PASSWORD "${{ secrets.INVENTORY_POSTGRES_PASSWORD_STAGE }}"
           add DATABASE_URL "${{ secrets.INVENTORY_DATABASE_URL_STAGE }}"
+          # Service URLs
           add ALLOWED_HOSTS "stage-inventory.quidpath.com,stage-api.quidpath.com,localhost,127.0.0.1,0.0.0.0"
           add ERP_BACKEND_URL "http://django-backend-stage:8000"
+          add POS_SERVICE_URL "http://pos-backend-stage:8000"
+          add CRM_SERVICE_URL "http://crm-backend-stage:8000"
+          add HRM_SERVICE_URL "http://hrm-backend-stage:8000"
+          add PROJECTS_SERVICE_URL "http://projects-backend-stage:8000"
           add REDIS_URL "redis://redis:6379/0"
           add DJANGO_SETTINGS_MODULE "inventory_service.settings.stage"
 

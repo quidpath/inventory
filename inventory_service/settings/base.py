@@ -84,9 +84,15 @@ CRM_SERVICE_URL = os.environ.get("CRM_SERVICE_URL", "http://crm-backend:8000")
 HRM_SERVICE_URL = os.environ.get("HRM_SERVICE_URL", "http://hrm-backend:8000")
 PROJECTS_SERVICE_URL = os.environ.get("PROJECTS_SERVICE_URL", "http://projects-backend:8000")
 
-# Service authentication
-SERVICE_API_KEY = os.environ.get("SERVICE_API_KEY", "")
+# Service authentication - own secret
 INVENTORY_SERVICE_SECRET = os.environ.get("INVENTORY_SERVICE_SECRET", "")
+# Cross-service secrets (used when calling other services)
+ERP_SERVICE_SECRET = os.environ.get("ERP_SERVICE_SECRET", "")
+POS_SERVICE_SECRET = os.environ.get("POS_SERVICE_SECRET", "")
+CRM_SERVICE_SECRET = os.environ.get("CRM_SERVICE_SECRET", "")
+HRM_SERVICE_SECRET = os.environ.get("HRM_SERVICE_SECRET", "")
+PROJECTS_SERVICE_SECRET = os.environ.get("PROJECTS_SERVICE_SECRET", "")
+BILLING_SERVICE_SECRET = os.environ.get("BILLING_SERVICE_SECRET", "")
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 

@@ -15,10 +15,9 @@ from inventory_service.services.user_cache_service import UserCacheService
 logger = logging.getLogger(__name__)
 
 SERVICE_TO_SERVICE_PATHS = [
-    "/api/inventory/stock/move/",
-    "/api/inventory/stock/level/",
-    "/api/inventory/products/list/",
-    "/api/inventory/products/variant/",
+    "/api/inventory/stock/",
+    "/api/inventory/products/",
+    "/api/inventory/warehouse/",
 ]
 
 
