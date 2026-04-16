@@ -78,12 +78,20 @@ def _build_database_url():
     host = os.environ.get("POSTGRES_HOST", "db")
     port = os.environ.get("POSTGRES_PORT", "5432")
     db = os.environ.get("POSTGRES_DB", "")
-    return f"postgresql://{user}:{password}@{host}:{port}/{db}"
+    if user and password and db:
+        return f"postgresql://{user}:{password}@{host}:{port}/{db}"
+    return None
 
+
+_db_url = _build_database_url()
+
+# Remove DATABASE_URL from env if it's empty so dj_database_url doesn't pick it up
+if not os.environ.get("DATABASE_URL", "").strip():
+    os.environ.pop("DATABASE_URL", None)
 
 DATABASES = {
     "default": dj_database_url.config(
-        default=_build_database_url(),
+        default=_db_url,
         conn_max_age=600,
     )
 }
