@@ -68,9 +68,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "inventory_service.wsgi.application"
 
+def _build_database_url():
+    url = os.environ.get("DATABASE_URL", "").strip()
+    if url:
+        return url
+    # Fall back to constructing from individual parts
+    user = os.environ.get("POSTGRES_USER", "")
+    password = os.environ.get("POSTGRES_PASSWORD", "")
+    host = os.environ.get("POSTGRES_HOST", "db")
+    port = os.environ.get("POSTGRES_PORT", "5432")
+    db = os.environ.get("POSTGRES_DB", "")
+    return f"postgresql://{user}:{password}@{host}:{port}/{db}"
+
+
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
+        default=_build_database_url(),
         conn_max_age=600,
     )
 }
