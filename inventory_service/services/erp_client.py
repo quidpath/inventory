@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class ERPClient:
     def __init__(self):
         self.base_url = settings.ERP_BACKEND_URL
-        self.service_key = settings.SERVICE_API_KEY
+        self.service_key = getattr(settings, 'ERP_SERVICE_SECRET', '') or getattr(settings, 'INVENTORY_SERVICE_SECRET', '')
 
     def _headers(self):
         return {"X-Service-Key": self.service_key, "Content-Type": "application/json"}

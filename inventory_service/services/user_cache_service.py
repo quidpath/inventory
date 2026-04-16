@@ -21,7 +21,7 @@ class UserCacheService:
             url = f"{settings.ERP_BACKEND_URL}/api/auth/users/{user_id}/"
             resp = requests.get(
                 url,
-                headers={"X-Service-Key": settings.SERVICE_API_KEY},
+                headers={"X-Service-Key": getattr(settings, 'ERP_SERVICE_SECRET', '') or getattr(settings, 'INVENTORY_SERVICE_SECRET', '')},
                 timeout=5,
             )
             if resp.status_code == 200:
@@ -41,7 +41,7 @@ class UserCacheService:
             url = f"{settings.ERP_BACKEND_URL}/api/auth/corporates/{corporate_id}/"
             resp = requests.get(
                 url,
-                headers={"X-Service-Key": settings.SERVICE_API_KEY},
+                headers={"X-Service-Key": getattr(settings, 'ERP_SERVICE_SECRET', '') or getattr(settings, 'INVENTORY_SERVICE_SECRET', '')},
                 timeout=5,
             )
             if resp.status_code == 200:

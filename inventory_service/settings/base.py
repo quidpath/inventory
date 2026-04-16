@@ -93,6 +93,8 @@ CRM_SERVICE_SECRET = os.environ.get("CRM_SERVICE_SECRET", "")
 HRM_SERVICE_SECRET = os.environ.get("HRM_SERVICE_SECRET", "")
 PROJECTS_SERVICE_SECRET = os.environ.get("PROJECTS_SERVICE_SECRET", "")
 BILLING_SERVICE_SECRET = os.environ.get("BILLING_SERVICE_SECRET", "")
+# Legacy alias — kept for backward compatibility
+SERVICE_API_KEY = ERP_SERVICE_SECRET or INVENTORY_SERVICE_SECRET
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 
