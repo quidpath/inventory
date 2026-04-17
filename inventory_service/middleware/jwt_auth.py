@@ -89,7 +89,7 @@ class JWTAuthenticationMiddleware:
         return self.get_response(request)
 
     def _is_public_endpoint(self, path):
-        public_paths = ["/health/", "/api/docs/", "/admin/", "/static/", "/media/"]
+        public_paths = ["/health/", "/api/inventory/health/", "/api/docs/", "/admin/", "/static/", "/media/"]
         return any(path.startswith(p) for p in public_paths)
 
     def _is_service_to_service_path(self, path):

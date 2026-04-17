@@ -1,9 +1,12 @@
 from django.contrib import admin
 from django.urls import include, path
 
+from inventory_service.health_check import health_check, simple_health
+
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("health/", lambda request: __import__("django.http", fromlist=["JsonResponse"]).JsonResponse({"status": "ok"})),
+    path("health/", health_check, name="health_check"),
+    path("api/inventory/health/", simple_health, name="simple_health"),
     path("api/inventory/products/", include("inventory_service.products.urls")),
     path("api/inventory/warehouse/", include("inventory_service.warehouse.urls")),
     path("api/inventory/stock/", include("inventory_service.stock.urls")),
