@@ -285,7 +285,19 @@ def list_products_integrated(request):
     GET /api/products/integrated/?page=1&page_size=50&search=query
     """
     try:
-        corporate_id = request.headers.get('X-Corporate-ID')
+        # Handle both service-to-service calls and user calls
+        if hasattr(request, 'service_call') and request.service_call:
+            # Service-to-service call - get from query params
+            corporate_id = request.GET.get('corporate_id')
+        else:
+            # User call - get from headers
+            corporate_id = request.headers.get('X-Corporate-ID')
+        
+        if not corporate_id:
+            return Response(
+                {'error': 'corporate_id is required (header X-Corporate-ID or query param)'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         
         # Get query parameters
         page = int(request.GET.get('page', 1))
@@ -387,7 +399,13 @@ def check_integration_health(request):
     GET /api/products/integrated/health/
     """
     try:
-        corporate_id = request.headers.get('X-Corporate-ID')
+        # Handle both service-to-service calls and user calls
+        if hasattr(request, 'service_call') and request.service_call:
+            # Service-to-service call - use default corporate_id or get from query params
+            corporate_id = request.GET.get('corporate_id')
+        else:
+            # User call - get from headers
+            corporate_id = request.headers.get('X-Corporate-ID')
         
         integration_client = UnifiedIntegrationClient()
         connectivity = integration_client.check_service_connectivity(corporate_id)

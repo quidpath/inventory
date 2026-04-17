@@ -195,7 +195,19 @@ def list_stock_moves(request):
     GET /api/stock/moves/integrated/?move_type=receipt&state=done&product_id=uuid
     """
     try:
-        corporate_id = request.headers.get('X-Corporate-ID')
+        # Handle both service-to-service calls and user calls
+        if hasattr(request, 'service_call') and request.service_call:
+            # Service-to-service call - get from query params
+            corporate_id = request.GET.get('corporate_id')
+        else:
+            # User call - get from headers
+            corporate_id = request.headers.get('X-Corporate-ID')
+        
+        if not corporate_id:
+            return Response(
+                {'error': 'corporate_id is required (header X-Corporate-ID or query param)'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         
         # Get query parameters
         move_type = request.GET.get('move_type', '')
