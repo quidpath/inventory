@@ -24,9 +24,6 @@ fi
 
 PYTHON=$(command -v python3 || command -v python)
 
-echo "Running makemigrations..."
-$PYTHON manage.py makemigrations --noinput
-
 echo "Running migrations..."
 $PYTHON manage.py migrate --noinput
 
