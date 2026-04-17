@@ -1,5 +1,6 @@
 """
 Simple health check endpoint that doesn't require authentication
+Updated: 2026-04-17 - Fixed service communication issues
 """
 from django.http import JsonResponse
 from django.db import connection
