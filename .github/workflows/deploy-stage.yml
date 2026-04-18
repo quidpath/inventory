@@ -62,11 +62,11 @@ jobs:
           add DATABASE_URL "${{ secrets.INVENTORY_DATABASE_URL_STAGE }}"
           # Service URLs
           add ALLOWED_HOSTS "stage-inventory.quidpath.com,stage-api.quidpath.com,localhost,127.0.0.1,0.0.0.0"
-          add ERP_BACKEND_URL "http://django-backend-stage:8000"
-          add POS_SERVICE_URL "http://pos-backend-stage:8000"
-          add CRM_SERVICE_URL "http://crm-backend-stage:8000"
-          add HRM_SERVICE_URL "http://hrm-backend-stage:8000"
-          add PROJECTS_SERVICE_URL "http://projects-backend-stage:8000"
+          add ERP_BACKEND_URL "http://51.77.147.233:8011"
+          add POS_SERVICE_URL "http://51.77.147.233:8019"
+          add CRM_SERVICE_URL "http://51.77.147.233:8017"
+          add HRM_SERVICE_URL "http://51.77.147.233:8013"
+          add PROJECTS_SERVICE_URL "http://51.77.147.233:8021"
           add REDIS_URL "redis://redis:6379/0"
           add DJANGO_SETTINGS_MODULE "inventory_service.settings.stage"
 
