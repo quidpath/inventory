@@ -704,10 +704,10 @@ class UnifiedIntegrationClient:
         """Check connectivity to all integrated services"""
         services = {
             'Accounting': (self.accounting_url, '/api/auth/health/'),
-            'POS': (self.pos_url, '/api/pos/summary/'),
-            'CRM': (self.crm_url, '/api/crm/pipeline/overview/'),
-            'HRM': (self.hrm_url, '/api/hrm/employees/summary/'),
-            'Projects': (self.projects_url, '/api/projects/'),
+            'POS': (self.pos_url, '/health/'),
+            'CRM': (self.crm_url, '/health/'),
+            'HRM': (self.hrm_url, '/health/'),
+            'Projects': (self.projects_url, '/health/'),
         }
         
         results = {}
@@ -717,11 +717,10 @@ class UnifiedIntegrationClient:
                 import time
                 start_time = time.time()
                 
+                # Health endpoints don't require authentication or corporate_id
                 response = requests.get(
                     f"{service_url}{health_path}",
-                    headers=self._get_headers(corporate_id),
-                    timeout=5,
-                    params={'corporate_id': corporate_id} if service_name != 'Accounting' else {}
+                    timeout=5
                 )
                 
                 response_time = time.time() - start_time
