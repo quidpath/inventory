@@ -18,7 +18,7 @@ class UserCacheService:
         if cached:
             return cached
         try:
-            url = f"{settings.ERP_BACKEND_URL}/api/internal/users/{user_id}/"
+            url = f"{settings.ERP_BACKEND_URL}/api/auth/users/{user_id}/"
             service_key = getattr(settings, 'INVENTORY_SERVICE_SECRET', '')
             if not service_key:
                 logger.error("INVENTORY_SERVICE_SECRET not configured")
@@ -45,7 +45,7 @@ class UserCacheService:
         if cached:
             return cached
         try:
-            url = f"{settings.ERP_BACKEND_URL}/api/internal/corporates/{corporate_id}/"
+            url = f"{settings.ERP_BACKEND_URL}/api/auth/corporates/{corporate_id}/"
             service_key = getattr(settings, 'INVENTORY_SERVICE_SECRET', '')
             if not service_key:
                 logger.error("INVENTORY_SERVICE_SECRET not configured")

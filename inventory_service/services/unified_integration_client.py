@@ -703,25 +703,32 @@ class UnifiedIntegrationClient:
     def check_service_connectivity(self, corporate_id: str) -> Dict:
         """Check connectivity to all integrated services"""
         services = {
-            'Accounting': self.accounting_url,
-            'POS': self.pos_url,
-            'CRM': self.crm_url,
-            'HRM': self.hrm_url,
-            'Projects': self.projects_url,
+            'Accounting': (self.accounting_url, '/api/auth/health/'),
+            'POS': (self.pos_url, '/api/pos/summary/'),
+            'CRM': (self.crm_url, '/api/crm/pipeline/overview/'),
+            'HRM': (self.hrm_url, '/api/hrm/employees/summary/'),
+            'Projects': (self.projects_url, '/api/projects/'),
         }
         
         results = {}
         
-        for service_name, service_url in services.items():
+        for service_name, (service_url, health_path) in services.items():
             try:
+                import time
+                start_time = time.time()
+                
                 response = requests.get(
-                    f"{service_url}/health/",
+                    f"{service_url}{health_path}",
                     headers=self._get_headers(corporate_id),
-                    timeout=5
+                    timeout=5,
+                    params={'corporate_id': corporate_id} if service_name != 'Accounting' else {}
                 )
+                
+                response_time = time.time() - start_time
+                
                 results[service_name] = {
                     'status': 'online' if response.status_code == 200 else 'error',
-                    'response_time': response.elapsed.total_seconds()
+                    'response_time': response_time
                 }
             except Exception as e:
                 results[service_name] = {
