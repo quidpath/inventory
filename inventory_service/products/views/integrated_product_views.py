@@ -44,14 +44,20 @@ def create_product_integrated(request):
     }
     """
     try:
-        # Get headers
-        corporate_id = request.headers.get('X-Corporate-ID')
-        user_id = request.headers.get('X-User-ID')
+        # Get from middleware-set attributes (JWT token)
+        corporate_id = getattr(request, 'corporate_id', None)
+        user_id = getattr(request, 'user_id', None)
+        
+        # Fallback to headers for service-to-service calls
+        if not corporate_id:
+            corporate_id = request.headers.get('X-Corporate-ID')
+        if not user_id:
+            user_id = request.headers.get('X-User-ID')
         
         if not corporate_id:
             return Response(
-                {'error': 'X-Corporate-ID header is required'},
-                status=status.HTTP_400_BAD_REQUEST
+                {'error': 'Authentication required - corporate_id not found'},
+                status=status.HTTP_401_UNAUTHORIZED
             )
         
         # Add corporate_id to data
@@ -122,7 +128,8 @@ def get_product_integrated(request, product_id):
     GET /api/products/integrated/{product_id}/
     """
     try:
-        corporate_id = request.headers.get('X-Corporate-ID')
+        # Get from middleware-set attributes (JWT token)
+        corporate_id = getattr(request, 'corporate_id', None) or request.headers.get('X-Corporate-ID')
         
         product = get_object_or_404(
             Product,
@@ -157,8 +164,9 @@ def update_product_integrated(request, product_id):
     PUT/PATCH /api/products/integrated/{product_id}/
     """
     try:
-        corporate_id = request.headers.get('X-Corporate-ID')
-        user_id = request.headers.get('X-User-ID')
+        # Get from middleware-set attributes (JWT token)
+        corporate_id = getattr(request, 'corporate_id', None) or request.headers.get('X-Corporate-ID')
+        user_id = getattr(request, 'user_id', None) or request.headers.get('X-User-ID')
         
         product = get_object_or_404(
             Product,
@@ -232,8 +240,9 @@ def delete_product_integrated(request, product_id):
     DELETE /api/products/integrated/{product_id}/
     """
     try:
-        corporate_id = request.headers.get('X-Corporate-ID')
-        user_id = request.headers.get('X-User-ID')
+        # Get from middleware-set attributes (JWT token)
+        corporate_id = getattr(request, 'corporate_id', None) or request.headers.get('X-Corporate-ID')
+        user_id = getattr(request, 'user_id', None) or request.headers.get('X-User-ID')
         
         product = get_object_or_404(
             Product,
@@ -285,18 +294,19 @@ def list_products_integrated(request):
     GET /api/products/integrated/?page=1&page_size=50&search=query
     """
     try:
-        # Handle both service-to-service calls and user calls
-        if hasattr(request, 'service_call') and request.service_call:
-            # Service-to-service call - get from query params
+        # Get from middleware-set attributes (JWT token) or service-to-service call
+        corporate_id = getattr(request, 'corporate_id', None)
+        if not corporate_id:
+            # Fallback to query params for service-to-service calls
             corporate_id = request.GET.get('corporate_id')
-        else:
-            # User call - get from headers
+        if not corporate_id:
+            # Fallback to headers
             corporate_id = request.headers.get('X-Corporate-ID')
         
         if not corporate_id:
             return Response(
-                {'error': 'corporate_id is required (header X-Corporate-ID or query param)'},
-                status=status.HTTP_400_BAD_REQUEST
+                {'error': 'Authentication required - corporate_id not found'},
+                status=status.HTTP_401_UNAUTHORIZED
             )
         
         # Get query parameters
@@ -359,8 +369,9 @@ def bulk_sync_products(request):
     }
     """
     try:
-        corporate_id = request.headers.get('X-Corporate-ID')
-        user_id = request.headers.get('X-User-ID')
+        # Get from middleware-set attributes (JWT token)
+        corporate_id = getattr(request, 'corporate_id', None) or request.headers.get('X-Corporate-ID')
+        user_id = getattr(request, 'user_id', None) or request.headers.get('X-User-ID')
         
         product_ids = request.data.get('product_ids', [])
         
@@ -399,12 +410,13 @@ def check_integration_health(request):
     GET /api/products/integrated/health/
     """
     try:
-        # Handle both service-to-service calls and user calls
-        if hasattr(request, 'service_call') and request.service_call:
-            # Service-to-service call - use default corporate_id or get from query params
+        # Get from middleware-set attributes (JWT token) or service-to-service call
+        corporate_id = getattr(request, 'corporate_id', None)
+        if not corporate_id:
+            # Fallback to query params for service-to-service calls
             corporate_id = request.GET.get('corporate_id')
-        else:
-            # User call - get from headers
+        if not corporate_id:
+            # Fallback to headers
             corporate_id = request.headers.get('X-Corporate-ID')
         
         integration_client = UnifiedIntegrationClient()

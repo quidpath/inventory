@@ -31,7 +31,11 @@ echo "Collecting static files..."
 $PYTHON manage.py collectstatic --noinput
 
 echo "Creating superuser..."
-$PYTHON manage.py createsuperuser --noinput || true
+if [ -n "${DJANGO_SUPERUSER_USERNAME:-}" ] && [ -n "${DJANGO_SUPERUSER_EMAIL:-}" ] && [ -n "${DJANGO_SUPERUSER_PASSWORD:-}" ]; then
+  $PYTHON manage.py createsuperuser --noinput --username "$DJANGO_SUPERUSER_USERNAME" --email "$DJANGO_SUPERUSER_EMAIL" || echo "Superuser already exists or creation failed"
+else
+  echo "Skipping superuser creation - environment variables not set (DJANGO_SUPERUSER_USERNAME, DJANGO_SUPERUSER_EMAIL, DJANGO_SUPERUSER_PASSWORD)"
+fi
 
 echo "Starting Gunicorn..."
 exec gunicorn inventory_service.wsgi:application \
