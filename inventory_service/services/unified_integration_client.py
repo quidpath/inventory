@@ -27,12 +27,17 @@ class UnifiedIntegrationClient:
         self.crm_url = settings.CRM_SERVICE_URL
         self.hrm_url = settings.HRM_SERVICE_URL
         self.projects_url = settings.PROJECTS_SERVICE_URL
-        self.service_secret = settings.INVENTORY_SERVICE_SECRET
+        # Each service expects its own secret for authentication
+        self.erp_service_secret = getattr(settings, 'ERP_SERVICE_SECRET', '')
+        self.pos_service_secret = getattr(settings, 'POS_SERVICE_SECRET', '')
+        self.crm_service_secret = getattr(settings, 'CRM_SERVICE_SECRET', '')
+        self.hrm_service_secret = getattr(settings, 'HRM_SERVICE_SECRET', '')
+        self.projects_service_secret = getattr(settings, 'PROJECTS_SERVICE_SECRET', '')
         
-    def _get_headers(self, corporate_id: str, user_id: str = None) -> Dict:
+    def _get_headers(self, corporate_id: str, user_id: str = None, service_secret: str = None) -> Dict:
         """Generate service-to-service authentication headers"""
         headers = {
-            'X-Service-Key': self.service_secret,
+            'X-Service-Key': service_secret or '',
             'X-Corporate-ID': str(corporate_id),
             'Content-Type': 'application/json',
         }
@@ -302,7 +307,7 @@ class UnifiedIntegrationClient:
                 response = requests.post(
                     url,
                     json=accounting_data,
-                    headers=self._get_headers(corporate_id, user_id),
+                    headers=self._get_headers(corporate_id, user_id, self.erp_service_secret),
                     timeout=10
                 )
                 
@@ -321,7 +326,7 @@ class UnifiedIntegrationClient:
                 response = requests.patch(
                     url,
                     json=accounting_data,
-                    headers=self._get_headers(corporate_id, user_id),
+                    headers=self._get_headers(corporate_id, user_id, self.erp_service_secret),
                     timeout=10
                 )
                 
@@ -338,7 +343,7 @@ class UnifiedIntegrationClient:
             url = f"{self.accounting_url}/api/accounting/inventory-items/{product_id}/"
             response = requests.delete(
                 url,
-                headers=self._get_headers(corporate_id, user_id),
+                headers=self._get_headers(corporate_id, user_id, self.erp_service_secret),
                 timeout=10
             )
             return response.status_code in [200, 204]
@@ -399,7 +404,7 @@ class UnifiedIntegrationClient:
             response = requests.post(
                 url,
                 json=entry_data,
-                headers=self._get_headers(corporate_id, user_id),
+                headers=self._get_headers(corporate_id, user_id, self.erp_service_secret),
                 timeout=10
             )
             
@@ -433,7 +438,7 @@ class UnifiedIntegrationClient:
                 response = requests.post(
                     url,
                     json=pos_data,
-                    headers=self._get_headers(corporate_id, user_id),
+                    headers=self._get_headers(corporate_id, user_id, self.pos_service_secret),
                     timeout=10
                 )
                 
@@ -452,7 +457,7 @@ class UnifiedIntegrationClient:
                 response = requests.patch(
                     url,
                     json=pos_data,
-                    headers=self._get_headers(corporate_id, user_id),
+                    headers=self._get_headers(corporate_id, user_id, self.pos_service_secret),
                     timeout=10
                 )
                 
@@ -469,7 +474,7 @@ class UnifiedIntegrationClient:
             url = f"{self.pos_url}/api/pos/products/{product_id}/"
             response = requests.delete(
                 url,
-                headers=self._get_headers(corporate_id, user_id),
+                headers=self._get_headers(corporate_id, user_id, self.pos_service_secret),
                 timeout=10
             )
             return response.status_code in [200, 204]
@@ -494,7 +499,7 @@ class UnifiedIntegrationClient:
             response = requests.post(
                 url,
                 json=stock_data,
-                headers=self._get_headers(corporate_id, user_id),
+                headers=self._get_headers(corporate_id, user_id, self.pos_service_secret),
                 timeout=10
             )
             
@@ -522,7 +527,7 @@ class UnifiedIntegrationClient:
             response = requests.post(
                 url,
                 json=notification_data,
-                headers=self._get_headers(corporate_id),
+                headers=self._get_headers(corporate_id, service_secret=self.crm_service_secret),
                 timeout=10
             )
             
@@ -550,7 +555,7 @@ class UnifiedIntegrationClient:
             response = requests.post(
                 url,
                 json=asset_data,
-                headers=self._get_headers(corporate_id),
+                headers=self._get_headers(corporate_id, service_secret=self.hrm_service_secret),
                 timeout=10
             )
             
@@ -576,7 +581,7 @@ class UnifiedIntegrationClient:
             response = requests.post(
                 url,
                 json=location_data,
-                headers=self._get_headers(corporate_id, user_id),
+                headers=self._get_headers(corporate_id, user_id, self.hrm_service_secret),
                 timeout=10
             )
             
@@ -606,7 +611,7 @@ class UnifiedIntegrationClient:
                 response = requests.post(
                     url,
                     json=material_data,
-                    headers=self._get_headers(corporate_id, user_id),
+                    headers=self._get_headers(corporate_id, user_id, self.projects_service_secret),
                     timeout=10
                 )
                 
@@ -624,7 +629,7 @@ class UnifiedIntegrationClient:
                 response = requests.patch(
                     url,
                     json=material_data,
-                    headers=self._get_headers(corporate_id, user_id),
+                    headers=self._get_headers(corporate_id, user_id, self.projects_service_secret),
                     timeout=10
                 )
                 
@@ -641,7 +646,7 @@ class UnifiedIntegrationClient:
             url = f"{self.projects_url}/api/projects/materials/{product_id}/"
             response = requests.delete(
                 url,
-                headers=self._get_headers(corporate_id, user_id),
+                headers=self._get_headers(corporate_id, user_id, self.projects_service_secret),
                 timeout=10
             )
             return response.status_code in [200, 204]
@@ -666,7 +671,7 @@ class UnifiedIntegrationClient:
             response = requests.post(
                 url,
                 json=usage_data,
-                headers=self._get_headers(corporate_id, user_id),
+                headers=self._get_headers(corporate_id, user_id, self.projects_service_secret),
                 timeout=10
             )
             

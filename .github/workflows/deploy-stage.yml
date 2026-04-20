@@ -60,7 +60,7 @@ jobs:
           add POSTGRES_USER "${{ secrets.INVENTORY_POSTGRES_USER_STAGE }}"
           add POSTGRES_PASSWORD "${{ secrets.INVENTORY_POSTGRES_PASSWORD_STAGE }}"
           add DATABASE_URL "${{ secrets.INVENTORY_DATABASE_URL_STAGE }}"
-          # Service URLs
+          # Service URLs (using container names and internal ports for inter-service communication)
           add ALLOWED_HOSTS "stage-inventory.quidpath.com,stage-api.quidpath.com,localhost,127.0.0.1,0.0.0.0"
           add ERP_BACKEND_URL "http://quidpath-backend-stage:8004"
           add POS_SERVICE_URL "http://pos-backend-stage:8000"
