@@ -14,6 +14,13 @@ DATABASES["default"]["OPTIONS"] = {"sslmode": "disable"}
 
 DEBUG = False
 
+# Service URLs for stage environment (internal Docker network communication)
+ERP_BACKEND_URL = os.environ.get("ERP_BACKEND_URL", "http://quidpath-backend-stage:8004")
+POS_SERVICE_URL = os.environ.get("POS_SERVICE_URL", "http://pos-backend-stage:8000")
+CRM_SERVICE_URL = os.environ.get("CRM_SERVICE_URL", "http://crm-backend-stage:8000")
+HRM_SERVICE_URL = os.environ.get("HRM_SERVICE_URL", "http://hrm-backend-stage:8000")
+PROJECTS_SERVICE_URL = os.environ.get("PROJECTS_SERVICE_URL", "http://projects-backend-stage:8007")
+
 _default_hosts = "stage.quidpath.com,www.stage.quidpath.com,stage-inventory.quidpath.com,stage-api.quidpath.com,localhost,127.0.0.1,0.0.0.0"
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", _default_hosts).split(",") if h.strip()]
 if "inventory-backend-stage" not in ALLOWED_HOSTS:
