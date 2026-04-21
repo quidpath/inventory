@@ -99,7 +99,7 @@ DATABASES = {
 JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", SECRET_KEY)
 
 # Service URLs for integration
-ERP_BACKEND_URL = os.environ.get("ERP_BACKEND_URL", "http://django-backend:8000")
+ERP_BACKEND_URL = os.environ.get("ERP_BACKEND_URL", "http://quidpath-backend-stage:8004")
 POS_SERVICE_URL = os.environ.get("POS_SERVICE_URL", "http://pos-backend:8000")
 CRM_SERVICE_URL = os.environ.get("CRM_SERVICE_URL", "http://crm-backend:8000")
 HRM_SERVICE_URL = os.environ.get("HRM_SERVICE_URL", "http://hrm-backend:8000")

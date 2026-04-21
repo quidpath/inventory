@@ -62,6 +62,28 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Only run the conversion if tables exist and need conversion
+        # First, clear existing data to avoid conversion issues
         migrations.RunPython(convert_integer_to_uuid_safe, reverse_conversion),
+        
+        # Then alter the fields
+        migrations.AlterField(
+            model_name='transactionlog',
+            name='user_id',
+            field=models.UUIDField(blank=True, null=True),
+        ),
+        migrations.AlterField(
+            model_name='transactionlog',
+            name='corporate_id',
+            field=models.UUIDField(blank=True, null=True),
+        ),
+        migrations.AlterField(
+            model_name='notification',
+            name='recipient_id',
+            field=models.UUIDField(db_index=True),
+        ),
+        migrations.AlterField(
+            model_name='notification',
+            name='corporate_id',
+            field=models.UUIDField(blank=True, null=True),
+        ),
     ]
