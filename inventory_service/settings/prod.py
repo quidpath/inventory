@@ -35,7 +35,7 @@ else:
 
 DEBUG = False
 
-_default_hosts = "inventory.quidpath.com,api.quidpath.com,quidpath.com,localhost,127.0.0.1,0.0.0.0"
+_default_hosts = "inventory.quidpath.com,api.quidpath.com,quidpath.com,www.quidpath.com,localhost,127.0.0.1,0.0.0.0"
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", _default_hosts).split(",") if h.strip()]
 if "inventory-backend" not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append("inventory-backend")
@@ -47,7 +47,12 @@ else:
     CSRF_TRUSTED_ORIGINS = ["https://quidpath.com", "https://www.quidpath.com", "https://*.quidpath.com"]
 
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = ["https://quidpath.com", "https://www.quidpath.com"]
+CORS_ALLOWED_ORIGINS = [
+    "https://quidpath.com",
+    "https://www.quidpath.com",
+    "https://api.quidpath.com",
+    "https://inventory.quidpath.com",
+]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"]
 CORS_ALLOW_HEADERS = list(default_headers) + ["authorization", "content-type"]
