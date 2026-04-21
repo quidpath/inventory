@@ -74,6 +74,15 @@ def uom_list_create(request):
         return ResponseProvider.method_not_allowed(["GET", "POST"])
     create_data = {k: v for k, v in data.items() if k in ("category_id", "name", "symbol", "factor", "rounding", "is_base", "is_active")}
     create_data["corporate_id"] = corporate_id
+    
+    # Validate required fields
+    if not create_data.get("category_id"):
+        return ResponseProvider.error_response("category_id is required", status=400)
+    if not create_data.get("name"):
+        return ResponseProvider.error_response("name is required", status=400)
+    if not create_data.get("symbol"):
+        return ResponseProvider.error_response("symbol is required", status=400)
+    
     try:
         created = registry.database("unitofmeasure", "create", data=create_data)
     except Exception as e:

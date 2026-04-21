@@ -43,6 +43,16 @@ class UnitOfMeasureSerializer(serializers.ModelSerializer):
             'factor', 'rounding', 'is_base', 'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def validate(self, data):
+        """Ensure required fields are present"""
+        if not data.get('category'):
+            raise serializers.ValidationError({'category': 'This field is required.'})
+        if not data.get('name'):
+            raise serializers.ValidationError({'name': 'This field is required.'})
+        if not data.get('symbol'):
+            raise serializers.ValidationError({'symbol': 'This field is required.'})
+        return data
 
 
 class AttributeValueSerializer(serializers.ModelSerializer):
