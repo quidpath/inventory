@@ -14,7 +14,7 @@ DATABASES["default"]["OPTIONS"] = {"sslmode": "disable"}
 
 DEBUG = False
 
-_default_hosts = "stage.quidpath.com,www.stage.quidpath.com,localhost,127.0.0.1,0.0.0.0"
+_default_hosts = "stage.quidpath.com,www.stage.quidpath.com,stage-inventory.quidpath.com,stage-api.quidpath.com,localhost,127.0.0.1,0.0.0.0"
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", _default_hosts).split(",") if h.strip()]
 if "inventory-backend-stage" not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append("inventory-backend-stage")
