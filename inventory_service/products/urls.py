@@ -20,11 +20,24 @@ from .views.products import (
     variant_list_create,
 )
 from .views.summary import inventory_summary
+from .views.product_query_api import (
+    get_product_details,
+    get_products_bulk,
+    search_products,
+    get_stock_level,
+    list_products_for_sale,
+)
 
 urlpatterns = [
     path("summary/", inventory_summary, name="inventory_summary"),
+    # Service-to-service query endpoints (must come before generic patterns)
+    path("search/", search_products, name="search_products"),
+    path("for-sale/", list_products_for_sale, name="list_products_for_sale"),
+    path("bulk/", get_products_bulk, name="get_products_bulk"),
+    path("<uuid:product_id>/stock/", get_stock_level, name="get_stock_level"),
+    # Regular product endpoints
     path("", product_list_create),
-    path("<uuid:pk>/", product_detail),
+    path("<uuid:pk>/", product_detail),  # Used by inventory client for get_product()
     path("<uuid:product_pk>/variants/", variant_list_create),
     path("variants/<uuid:pk>/", variant_detail),
     path("<uuid:product_pk>/images/", upload_product_image),

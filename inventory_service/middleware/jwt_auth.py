@@ -38,7 +38,8 @@ class JWTAuthenticationMiddleware:
             if key and key == service_secret:
                 request.service_call = True
                 request.user_id = None
-                request.corporate_id = None
+                # Get corporate_id from X-Corporate-ID header for service-to-service calls
+                request.corporate_id = request.META.get("HTTP_X_CORPORATE_ID", "").strip() or None
                 request.user_data = {}
                 request.corporate_data = None
                 return self.get_response(request)
@@ -89,7 +90,7 @@ class JWTAuthenticationMiddleware:
         return self.get_response(request)
 
     def _is_public_endpoint(self, path):
-        public_paths = ["/health/", "/api/docs/", "/admin/", "/static/", "/media/"]
+        public_paths = ["/health/", "/api/inventory/health/", "/api/docs/", "/admin/", "/static/", "/media/"]
         return any(path.startswith(p) for p in public_paths)
 
     def _is_service_to_service_path(self, path):

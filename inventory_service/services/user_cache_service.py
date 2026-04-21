@@ -19,15 +19,22 @@ class UserCacheService:
             return cached
         try:
             url = f"{settings.ERP_BACKEND_URL}/api/auth/users/{user_id}/"
+            service_key = getattr(settings, 'INVENTORY_SERVICE_SECRET', '')
+            if not service_key:
+                logger.error("INVENTORY_SERVICE_SECRET not configured")
+                return None
+                
             resp = requests.get(
                 url,
-                headers={"X-Service-Key": getattr(settings, 'ERP_SERVICE_SECRET', '') or getattr(settings, 'INVENTORY_SERVICE_SECRET', '')},
+                headers={"X-Service-Key": service_key},
                 timeout=5,
             )
             if resp.status_code == 200:
                 data = resp.json()
                 cache.set(cache_key, data, settings.USER_CACHE_TTL)
                 return data
+            else:
+                logger.warning("Failed to fetch user %s: HTTP %s - %s", user_id, resp.status_code, resp.text)
         except Exception as e:
             logger.warning("Could not fetch user %s: %s", user_id, e)
         return None
@@ -39,15 +46,22 @@ class UserCacheService:
             return cached
         try:
             url = f"{settings.ERP_BACKEND_URL}/api/auth/corporates/{corporate_id}/"
+            service_key = getattr(settings, 'INVENTORY_SERVICE_SECRET', '')
+            if not service_key:
+                logger.error("INVENTORY_SERVICE_SECRET not configured")
+                return None
+                
             resp = requests.get(
                 url,
-                headers={"X-Service-Key": getattr(settings, 'ERP_SERVICE_SECRET', '') or getattr(settings, 'INVENTORY_SERVICE_SECRET', '')},
+                headers={"X-Service-Key": service_key},
                 timeout=5,
             )
             if resp.status_code == 200:
                 data = resp.json()
                 cache.set(cache_key, data, settings.CORPORATE_CACHE_TTL)
                 return data
+            else:
+                logger.warning("Failed to fetch corporate %s: HTTP %s - %s", corporate_id, resp.status_code, resp.text)
         except Exception as e:
             logger.warning("Could not fetch corporate %s: %s", corporate_id, e)
         return None

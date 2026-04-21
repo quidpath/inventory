@@ -20,7 +20,23 @@ def inventory_summary(request):
     Returns inventory metrics with period-over-period comparisons.
     Compares current month vs previous month.
     """
-    cid = request.corporate_id
+    # Handle both service-to-service calls and user calls
+    if hasattr(request, 'service_call') and request.service_call:
+        # Service-to-service call - get from query params
+        cid = request.GET.get('corporate_id')
+        if not cid:
+            return Response(
+                {'error': 'corporate_id query parameter is required for service calls'},
+                status=400
+            )
+    else:
+        # User call - get from request attribute set by middleware
+        cid = request.corporate_id
+        if not cid:
+            return Response(
+                {'error': 'Corporate ID not found in token'},
+                status=400
+            )
     
     # Current period (this month)
     now = timezone.now()

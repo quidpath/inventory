@@ -45,13 +45,14 @@ def create_stock_move_integrated(request):
     }
     """
     try:
-        corporate_id = request.headers.get('X-Corporate-ID')
-        user_id = request.headers.get('X-User-ID')
+        # Get from middleware-set attributes (JWT token)
+        corporate_id = getattr(request, 'corporate_id', None) or request.headers.get('X-Corporate-ID')
+        user_id = getattr(request, 'user_id', None) or request.headers.get('X-User-ID')
         
         if not corporate_id:
             return Response(
-                {'error': 'X-Corporate-ID header is required'},
-                status=status.HTTP_400_BAD_REQUEST
+                {'error': 'Authentication required - corporate_id not found'},
+                status=status.HTTP_401_UNAUTHORIZED
             )
         
         # Validate required fields
@@ -151,7 +152,8 @@ def get_stock_move(request, move_id):
     GET /api/stock/moves/integrated/{move_id}/
     """
     try:
-        corporate_id = request.headers.get('X-Corporate-ID')
+        # Get from middleware-set attributes (JWT token)
+        corporate_id = getattr(request, 'corporate_id', None) or request.headers.get('X-Corporate-ID')
         
         stock_move = get_object_or_404(
             StockMove,
@@ -195,7 +197,18 @@ def list_stock_moves(request):
     GET /api/stock/moves/integrated/?move_type=receipt&state=done&product_id=uuid
     """
     try:
-        corporate_id = request.headers.get('X-Corporate-ID')
+        # Get from middleware-set attributes (JWT token) or service-to-service call
+        corporate_id = getattr(request, 'corporate_id', None)
+        if not corporate_id:
+            corporate_id = request.GET.get('corporate_id')
+        if not corporate_id:
+            corporate_id = request.headers.get('X-Corporate-ID')
+        
+        if not corporate_id:
+            return Response(
+                {'error': 'Authentication required - corporate_id not found'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
         
         # Get query parameters
         move_type = request.GET.get('move_type', '')
@@ -268,7 +281,8 @@ def get_stock_levels(request):
     GET /api/stock/levels/?product_id=uuid&location_id=uuid
     """
     try:
-        corporate_id = request.headers.get('X-Corporate-ID')
+        # Get from middleware-set attributes (JWT token)
+        corporate_id = getattr(request, 'corporate_id', None) or request.headers.get('X-Corporate-ID')
         
         product_id = request.GET.get('product_id', '')
         location_id = request.GET.get('location_id', '')
@@ -332,7 +346,8 @@ def check_availability(request):
     }
     """
     try:
-        corporate_id = request.headers.get('X-Corporate-ID')
+        # Get from middleware-set attributes (JWT token)
+        corporate_id = getattr(request, 'corporate_id', None) or request.headers.get('X-Corporate-ID')
         
         product_id = request.data.get('product_id')
         variant_id = request.data.get('variant_id')
@@ -396,8 +411,9 @@ def adjust_stock(request):
     }
     """
     try:
-        corporate_id = request.headers.get('X-Corporate-ID')
-        user_id = request.headers.get('X-User-ID')
+        # Get from middleware-set attributes (JWT token)
+        corporate_id = getattr(request, 'corporate_id', None) or request.headers.get('X-Corporate-ID')
+        user_id = getattr(request, 'user_id', None) or request.headers.get('X-User-ID')
         
         product_id = request.data.get('product_id')
         location_id = request.data.get('location_id')

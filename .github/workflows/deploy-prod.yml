@@ -60,13 +60,13 @@ jobs:
           add POSTGRES_USER "${{ secrets.INVENTORY_POSTGRES_USER }}"
           add POSTGRES_PASSWORD "${{ secrets.INVENTORY_POSTGRES_PASSWORD }}"
           add DATABASE_URL "${{ secrets.INVENTORY_DATABASE_URL }}"
-          # Service URLs
+          # Service URLs (using container names and internal ports for inter-service communication)
           add ALLOWED_HOSTS "inventory.quidpath.com,api.quidpath.com,localhost,127.0.0.1"
-          add ERP_BACKEND_URL "http://django-backend:8000"
+          add ERP_BACKEND_URL "http://quidpath-backend-prod:8004"
           add POS_SERVICE_URL "http://pos-backend:8000"
           add CRM_SERVICE_URL "http://crm-backend:8000"
           add HRM_SERVICE_URL "http://hrm-backend:8000"
-          add PROJECTS_SERVICE_URL "http://projects-backend:8000"
+          add PROJECTS_SERVICE_URL "http://projects-backend:8007"
           add REDIS_URL "redis://redis:6379/0"
           add DJANGO_SETTINGS_MODULE "inventory_service.settings.prod"
 
