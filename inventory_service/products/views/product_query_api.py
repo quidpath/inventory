@@ -10,7 +10,7 @@ from django.db.models import Q, Sum, F
 from django.shortcuts import get_object_or_404
 
 from inventory_service.products.models import Product, ProductVariant
-from inventory_service.stock.models import StockMove, StockQuant
+from inventory_service.stock.models import StockMove, StockLevel
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ def get_product_details(request, product_id):
         )
         
         # Get current stock level
-        stock_quants = StockQuant.objects.filter(
+        stock_quants = StockLevel.objects.filter(
             product=product,
             corporate_id=corporate_id
         ).aggregate(
@@ -108,7 +108,7 @@ def get_products_bulk(request):
         
         # Get stock levels for all products
         stock_levels = {}
-        stock_quants = StockQuant.objects.filter(
+        stock_quants = StockLevel.objects.filter(
             product__in=products,
             corporate_id=corporate_id
         ).values('product_id').annotate(
@@ -179,7 +179,7 @@ def search_products(request):
         product_ids = [p.id for p in products]
         stock_levels = {}
         if product_ids:
-            stock_quants = StockQuant.objects.filter(
+            stock_quants = StockLevel.objects.filter(
                 product_id__in=product_ids,
                 corporate_id=corporate_id
             ).values('product_id').annotate(
@@ -237,7 +237,7 @@ def get_stock_level(request, product_id):
         )
         
         # Get stock by location
-        stock_by_location = StockQuant.objects.filter(
+        stock_by_location = StockLevel.objects.filter(
             product=product,
             corporate_id=corporate_id
         ).values(
@@ -299,7 +299,7 @@ def list_products_for_sale(request):
         product_ids = [p.id for p in products]
         stock_levels = {}
         if product_ids:
-            stock_quants = StockQuant.objects.filter(
+            stock_quants = StockLevel.objects.filter(
                 product_id__in=product_ids,
                 corporate_id=corporate_id
             ).values('product_id').annotate(

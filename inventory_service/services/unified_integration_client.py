@@ -4,7 +4,12 @@ Provides product information to other services via API
 No data synchronization - services query inventory directly
 """
 import logging
+import requests
 from typing import Dict, List, Optional
+from decimal import Decimal
+from datetime import datetime
+from django.db import transaction
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +22,20 @@ class UnifiedIntegrationClient:
     """
     
     def __init__(self):
+        # Service URLs from settings
+        self.accounting_url = getattr(settings, 'ACCOUNTING_SERVICE_URL', 'http://accounting-backend:8000')
+        self.pos_url = getattr(settings, 'POS_SERVICE_URL', 'http://pos-backend:8000')
+        self.projects_url = getattr(settings, 'PROJECTS_SERVICE_URL', 'http://projects-backend:8000')
+        self.crm_url = getattr(settings, 'CRM_SERVICE_URL', 'http://crm-backend:8000')
+        self.hrm_url = getattr(settings, 'HRM_SERVICE_URL', 'http://hrm-backend:8000')
+        
+        # Service secrets
+        self.erp_service_secret = getattr(settings, 'ERP_SERVICE_SECRET', 'local-service-secret')
+        self.pos_service_secret = getattr(settings, 'POS_SERVICE_SECRET', 'local-service-secret')
+        self.projects_service_secret = getattr(settings, 'PROJECTS_SERVICE_SECRET', 'local-service-secret')
+        self.crm_service_secret = getattr(settings, 'CRM_SERVICE_SECRET', 'local-service-secret')
+        self.hrm_service_secret = getattr(settings, 'HRM_SERVICE_SECRET', 'local-service-secret')
+        
         logger.info("Inventory integration client initialized - services query inventory directly")
     
     def check_service_connectivity(self, corporate_id: str) -> Dict:
