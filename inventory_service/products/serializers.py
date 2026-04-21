@@ -46,8 +46,6 @@ class UnitOfMeasureSerializer(serializers.ModelSerializer):
     
     def validate(self, data):
         """Ensure required fields are present"""
-        if not data.get('category'):
-            raise serializers.ValidationError({'category': 'This field is required.'})
         if not data.get('name'):
             raise serializers.ValidationError({'name': 'This field is required.'})
         if not data.get('symbol'):
