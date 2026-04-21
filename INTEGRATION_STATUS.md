@@ -9,23 +9,45 @@
   - Added automatic migration state checker in `check_and_fix_migrations.py`
   - Integrated checker into `start.sh` to run before migrations
 - **Status**: ✅ Working - migrations now run successfully
+- **Environments**: Stage ✅ | Production ✅
 
 ### 2. ALLOWED_HOSTS Issue (RESOLVED)
-- **Problem**: `stage-inventory.quidpath.com` was not in ALLOWED_HOSTS
-- **Solution**: Added to default hosts in `stage.py` settings
-- **Status**: ✅ Fixed - will work after redeployment
+- **Problem**: Service subdomains were not in ALLOWED_HOSTS
+- **Solution**: 
+  - Stage: Added `stage-inventory.quidpath.com` and `stage-api.quidpath.com`
+  - Production: Added `inventory.quidpath.com`, `api.quidpath.com`, `www.quidpath.com`
+  - Updated both settings files and deployment workflows
+- **Status**: ✅ Fixed in both environments
+- **Environments**: Stage ✅ | Production ✅
+
+### 3. CORS Configuration (UPDATED)
+- **Problem**: CORS origins needed to include all service subdomains
+- **Solution**: 
+  - Added API gateway and inventory subdomains to CORS_ALLOWED_ORIGINS
+  - Configured for both stage and production
+- **Status**: ✅ Updated
+- **Environments**: Stage ✅ | Production ✅
 
 ## 🔄 Current Deployment
 
 **Branch**: Development  
-**Latest Commit**: 8f49515 - "Add stage-inventory.quidpath.com to default ALLOWED_HOSTS"  
+**Latest Commit**: 3c3c07d - "Update production settings and deployment workflow"  
 **Deployment**: GitHub Actions workflow triggered automatically
+
+### Changes Deployed:
+1. ✅ Migration issue fix with automatic checker
+2. ✅ ALLOWED_HOSTS updated for stage environment
+3. ✅ Production settings updated (ready for prod deployment)
+4. ✅ CORS configuration updated for both environments
+5. ✅ Deployment workflows updated with correct environment variables
 
 The workflow will:
 1. Build Docker image with all fixes
 2. Push to Docker Hub
 3. Deploy to stage environment
 4. Service will restart with correct configuration
+
+**Note**: Production changes are committed but will only deploy when code is merged to `main` or `master` branch.
 
 ## 🔗 Integration Points
 
@@ -84,11 +106,51 @@ From the logs, the service is:
 
 ## 📝 Configuration Files
 
-Key files for integration:
-- `inventory_service/settings/stage.py` - Stage environment settings
-- `docker-compose.stage.yml` - Docker compose configuration
-- `.env.stage` - Environment variables (managed by deployment)
-- `start.sh` - Container startup script with migration checks
+Key files updated for both environments:
+
+### Stage Environment
+- `inventory_service/settings/stage.py` - Stage settings with correct ALLOWED_HOSTS
+- `.github/workflows/deploy-stage.yml` - Stage deployment workflow
+- `docker-compose.stage.yml` - Docker compose for stage
+- `Dockerfile.stage` - Stage-specific Dockerfile
+
+### Production Environment  
+- `inventory_service/settings/prod.py` - Production settings with correct ALLOWED_HOSTS
+- `.github/workflows/deploy-prod.yml` - Production deployment workflow
+- `docker-compose.yml` - Docker compose for production
+- `Dockerfile` - Production Dockerfile
+
+### Shared Files
+- `start.sh` - Container startup script with migration checks (used by both)
+- `check_and_fix_migrations.py` - Automatic migration state fixer (used by both)
+- `.env.stage` - Stage environment variables (managed by deployment)
+
+## 🚀 Production Deployment
+
+When ready to deploy to production:
+
+1. **Merge to main/master branch**:
+   ```bash
+   git checkout main
+   git merge Development
+   git push origin main
+   ```
+
+2. **GitHub Actions will automatically**:
+   - Build production Docker image
+   - Deploy to production environment
+   - Apply all the same fixes that are working in stage
+
+3. **Verify production deployment**:
+   ```bash
+   # Check logs
+   docker logs --tail 50 inventory-backend
+   
+   # Test health endpoint
+   curl https://inventory.quidpath.com/health/
+   ```
+
+All fixes are now ready for production deployment!
 
 ## 🔐 Secrets Management
 
