@@ -1,6 +1,6 @@
 # Generated migration to safely change ID fields from Integer to UUID
 
-from django.db import migrations, models
+from django.db import migrations, models, connection
 import uuid
 
 
@@ -8,25 +8,71 @@ def convert_integer_to_uuid_safe(apps, schema_editor):
     """
     Safely convert integer IDs to UUIDs by clearing existing data first.
     This is necessary because integer values cannot be directly cast to UUID.
+    Only clears data if tables exist.
     """
-    TransactionLog = apps.get_model('audit', 'TransactionLog')
-    Notification = apps.get_model('audit', 'Notification')
+    # Check if tables exist before trying to delete
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'audit_transactionlog'
+            );
+        """)
+        transactionlog_exists = cursor.fetchone()[0]
+        
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'audit_notification'
+            );
+        """)
+        notification_exists = cursor.fetchone()[0]
     
-    # Clear existing data to avoid conversion issues
-    # In production, you might want to backup and migrate data differently
-    TransactionLog.objects.all().delete()
-    Notification.objects.all().delete()
+    # Only delete if tables exist
+    if transactionlog_exists:
+        TransactionLog = apps.get_model('audit', 'TransactionLog')
+        TransactionLog.objects.all().delete()
+    
+    if notification_exists:
+        Notification = apps.get_model('audit', 'Notification')
+        Notification.objects.all().delete()
 
 
 def reverse_conversion(apps, schema_editor):
     """
     Reverse the conversion - clear data again since we can't convert UUID back to int
+    Only clears data if tables exist.
     """
-    TransactionLog = apps.get_model('audit', 'TransactionLog')
-    Notification = apps.get_model('audit', 'Notification')
+    # Check if tables exist before trying to delete
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'audit_transactionlog'
+            );
+        """)
+        transactionlog_exists = cursor.fetchone()[0]
+        
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'audit_notification'
+            );
+        """)
+        notification_exists = cursor.fetchone()[0]
     
-    TransactionLog.objects.all().delete()
-    Notification.objects.all().delete()
+    # Only delete if tables exist
+    if transactionlog_exists:
+        TransactionLog = apps.get_model('audit', 'TransactionLog')
+        TransactionLog.objects.all().delete()
+    
+    if notification_exists:
+        Notification = apps.get_model('audit', 'Notification')
+        Notification.objects.all().delete()
 
 
 class Migration(migrations.Migration):

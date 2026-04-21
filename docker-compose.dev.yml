@@ -8,14 +8,23 @@ services:
     volumes:
       - postgres_inventory_dev_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: devdb
-      POSTGRES_USER: devuser
-      POSTGRES_PASSWORD: devpass
+      POSTGRES_DB: ${POSTGRES_DB:-inventory_dev}
+      POSTGRES_USER: ${POSTGRES_USER:-inventory_dev_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-inventory_dev_password}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U devuser -d devdb"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-inventory_dev_user} -d ${POSTGRES_DB:-inventory_dev}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - inventory_dev_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: inventory_redis_dev
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
     networks:
       - inventory_dev_network
 
@@ -26,23 +35,65 @@ services:
     container_name: inventory-backend-dev
     restart: unless-stopped
     ports:
-      - "8004:8000"
+      - "8015:8000"
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       DJANGO_SETTINGS_MODULE: inventory_service.settings.dev
       DJANGO_ENV: dev
-      DEBUG: "true"
-      ALLOWED_HOSTS: "localhost,127.0.0.1,0.0.0.0,*"
-      DATABASE_URL: "postgresql://devuser:devpass@db:5432/devdb"
-      SECRET_KEY: "local-dev-secret-key"
-      JWT_SECRET_KEY: "local-jwt-secret"
-      SERVICE_SECRET: "local-service-secret"
+      DEBUG: "True"
+      SECRET_KEY: dev-secret-key-change-in-production
+      JWT_SECRET_KEY: dev-jwt-secret-key-change-in-production
+      INVENTORY_SERVICE_SECRET: dev-inventory-service-secret
+      ERP_SERVICE_SECRET: dev-erp-service-secret
+      POS_SERVICE_SECRET: dev-pos-service-secret
+      CRM_SERVICE_SECRET: dev-crm-service-secret
+      HRM_SERVICE_SECRET: dev-hrm-service-secret
+      PROJECTS_SERVICE_SECRET: dev-projects-service-secret
+      BILLING_SERVICE_SECRET: dev-billing-service-secret
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: inventory_user
+      POSTGRES_PASSWORD: Inv8DovvXsROv62UfvFEr4D97EPullwFsj
+      POSTGRES_HOST: db
+      DATABASE_URL: postgresql://inventory_user:Inv8DovvXsROv62UfvFEr4D97EPullwFsj@db:5432/inventory_db
+      REDIS_URL: redis://redis:6379/0
+      ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0,inventory-backend-dev
+      PORT: "8000"
+      WORKERS: "2"
     volumes:
       - .:/app
       - media_dev:/app/media
       - staticfiles_dev:/app/staticfiles
+    networks:
+      - inventory_dev_network
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: inventory-celery-dev
+    restart: unless-stopped
+    command: celery -A inventory_service worker -l info
+    depends_on:
+      - redis
+      - backend
+    environment:
+      DJANGO_SETTINGS_MODULE: inventory_service.settings.dev
+      DJANGO_ENV: dev
+      SECRET_KEY: dev-secret-key-change-in-production
+      JWT_SECRET_KEY: dev-jwt-secret-key-change-in-production
+      INVENTORY_SERVICE_SECRET: dev-inventory-service-secret
+      POSTGRES_DB: inventory_db
+      POSTGRES_USER: inventory_user
+      POSTGRES_PASSWORD: Inv8DovvXsROv62UfvFEr4D97EPullwFsj
+      POSTGRES_HOST: db
+      DATABASE_URL: postgresql://inventory_user:Inv8DovvXsROv62UfvFEr4D97EPullwFsj@db:5432/inventory_db
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
     networks:
       - inventory_dev_network
 
