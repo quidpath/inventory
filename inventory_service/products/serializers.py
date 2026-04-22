@@ -119,16 +119,12 @@ class ProductSerializer(serializers.ModelSerializer):
     variants = ProductVariantSerializer(many=True, read_only=True)
     images = ProductImageSerializer(many=True, read_only=True)
     
-    # Accept both uom and uom_id from frontend
-    uom_id = serializers.UUIDField(write_only=True, required=False)
-    category_id = serializers.UUIDField(write_only=True, required=False)
-    
     class Meta:
         model = Product
         fields = [
             'id', 'corporate_id', 'internal_reference', 'name', 'description',
             'description_purchase', 'description_sale', 'product_type',
-            'category', 'category_id', 'category_name', 'uom', 'uom_id', 'uom_name', 'uom_symbol',
+            'category', 'category_name', 'uom', 'uom_name', 'uom_symbol',
             'uom_purchase', 'uom_purchase_name', 'costing_method',
             'standard_price', 'list_price', 'taxes_included', 'tax_rate',
             'weight', 'volume', 'barcode', 'hs_code', 'is_active',
@@ -137,18 +133,25 @@ class ProductSerializer(serializers.ModelSerializer):
             'created_by', 'created_at', 'updated_at', 'variants', 'images'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'uom': {'required': False},  # Make uom not required so we can handle uom_id
+            'category': {'required': False}  # Make category not required so we can handle category_id
+        }
     
-    def validate(self, data):
-        """Handle uom_id and category_id from frontend"""
-        # If uom_id is provided, use it for uom
-        if 'uom_id' in data:
-            data['uom_id'] = data.pop('uom_id')
+    def to_internal_value(self, data):
+        """
+        Convert incoming data to internal representation.
+        Handle uom_id -> uom and category_id -> category conversion.
+        """
+        # If uom_id is provided but not uom, map it
+        if 'uom_id' in data and 'uom' not in data:
+            data['uom'] = data.pop('uom_id')
         
-        # If category_id is provided, use it for category
-        if 'category_id' in data:
-            data['category_id'] = data.pop('category_id')
+        # If category_id is provided but not category, map it
+        if 'category_id' in data and 'category' not in data:
+            data['category'] = data.pop('category_id')
         
-        return data
+        return super().to_internal_value(data)
 
 
 class ProductListSerializer(serializers.ModelSerializer):
