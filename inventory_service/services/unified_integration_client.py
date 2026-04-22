@@ -23,7 +23,8 @@ class UnifiedIntegrationClient:
     
     def __init__(self):
         # Service URLs from settings
-        self.accounting_url = getattr(settings, 'ACCOUNTING_SERVICE_URL', 'http://accounting-backend:8000')
+        # For accounting, try ACCOUNTING_SERVICE_URL first, then fall back to ERP_BACKEND_URL
+        self.accounting_url = getattr(settings, 'ACCOUNTING_SERVICE_URL', None) or getattr(settings, 'ERP_BACKEND_URL', 'http://quidpath-backend:8004')
         self.pos_url = getattr(settings, 'POS_SERVICE_URL', 'http://pos-backend:8000')
         self.projects_url = getattr(settings, 'PROJECTS_SERVICE_URL', 'http://projects-backend:8000')
         self.crm_url = getattr(settings, 'CRM_SERVICE_URL', 'http://crm-backend:8000')
@@ -36,7 +37,7 @@ class UnifiedIntegrationClient:
         self.crm_service_secret = getattr(settings, 'CRM_SERVICE_SECRET', 'local-service-secret')
         self.hrm_service_secret = getattr(settings, 'HRM_SERVICE_SECRET', 'local-service-secret')
         
-        logger.info("Inventory integration client initialized - services query inventory directly")
+        logger.info(f"Inventory integration client initialized - Accounting: {self.accounting_url}, Projects: {self.projects_url}")
     
     def check_service_connectivity(self, corporate_id: str) -> Dict:
         """
