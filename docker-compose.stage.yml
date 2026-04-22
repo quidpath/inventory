@@ -35,12 +35,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health/ || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
     environment:
       DATABASE_URL: ${DATABASE_URL}
       POSTGRES_DB: ${POSTGRES_DB}
