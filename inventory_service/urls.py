@@ -13,7 +13,5 @@ urlpatterns = [
     path("api/inventory/valuation/", include("inventory_service.valuation.urls")),
     path("api/inventory/counting/", include("inventory_service.counting.urls")),
     # Integrated routes with cross-service synchronization
-    # Commented out - using Single Source of Truth architecture instead
-    # Services query inventory directly via product_query_api endpoints
-    # path("api/inventory/", include("inventory_service.urls_integrated")),
+    path("api/inventory/", include("inventory_service.urls_integrated")),
 ]

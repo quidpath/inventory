@@ -61,7 +61,7 @@ jobs:
           add POSTGRES_PASSWORD "${{ secrets.INVENTORY_POSTGRES_PASSWORD }}"
           add DATABASE_URL "${{ secrets.INVENTORY_DATABASE_URL }}"
           # Service URLs (using container names and internal ports for inter-service communication)
-          add ALLOWED_HOSTS "inventory.quidpath.com,api.quidpath.com,localhost,127.0.0.1"
+          add ALLOWED_HOSTS "inventory.quidpath.com,api.quidpath.com,quidpath.com,www.quidpath.com,localhost,127.0.0.1,0.0.0.0"
           add ERP_BACKEND_URL "http://quidpath-backend-prod:8004"
           add POS_SERVICE_URL "http://pos-backend:8000"
           add CRM_SERVICE_URL "http://crm-backend:8000"

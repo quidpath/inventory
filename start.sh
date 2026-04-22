@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -e
 
 echo "Starting Inventory Service"
 
@@ -23,6 +23,9 @@ if [ -f .env ]; then
 fi
 
 PYTHON=$(command -v python3 || command -v python)
+
+echo "Checking migration state..."
+$PYTHON check_and_fix_migrations.py || echo "Migration check skipped"
 
 echo "Running migrations..."
 $PYTHON manage.py migrate --noinput

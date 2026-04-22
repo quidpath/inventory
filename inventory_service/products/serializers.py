@@ -43,6 +43,14 @@ class UnitOfMeasureSerializer(serializers.ModelSerializer):
             'factor', 'rounding', 'is_base', 'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def validate(self, data):
+        """Ensure required fields are present"""
+        if not data.get('name'):
+            raise serializers.ValidationError({'name': 'This field is required.'})
+        if not data.get('symbol'):
+            raise serializers.ValidationError({'symbol': 'This field is required.'})
+        return data
 
 
 class AttributeValueSerializer(serializers.ModelSerializer):
@@ -125,6 +133,25 @@ class ProductSerializer(serializers.ModelSerializer):
             'created_by', 'created_at', 'updated_at', 'variants', 'images'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'uom': {'required': False},  # Make uom not required so we can handle uom_id
+            'category': {'required': False}  # Make category not required so we can handle category_id
+        }
+    
+    def to_internal_value(self, data):
+        """
+        Convert incoming data to internal representation.
+        Handle uom_id -> uom and category_id -> category conversion.
+        """
+        # If uom_id is provided but not uom, map it
+        if 'uom_id' in data and 'uom' not in data:
+            data['uom'] = data.pop('uom_id')
+        
+        # If category_id is provided but not category, map it
+        if 'category_id' in data and 'category' not in data:
+            data['category'] = data.pop('category_id')
+        
+        return super().to_internal_value(data)
 
 
 class ProductListSerializer(serializers.ModelSerializer):

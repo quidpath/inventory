@@ -19,9 +19,10 @@ class UserCacheService:
             return cached
         try:
             url = f"{settings.ERP_BACKEND_URL}/api/auth/users/{user_id}/"
-            service_key = getattr(settings, 'INVENTORY_SERVICE_SECRET', '')
+            # Use ERP_SERVICE_SECRET for authentication with accounting service
+            service_key = getattr(settings, 'ERP_SERVICE_SECRET', '') or getattr(settings, 'INVENTORY_SERVICE_SECRET', '')
             if not service_key:
-                logger.error("INVENTORY_SERVICE_SECRET not configured")
+                logger.error("ERP_SERVICE_SECRET not configured")
                 return None
                 
             resp = requests.get(
@@ -46,9 +47,10 @@ class UserCacheService:
             return cached
         try:
             url = f"{settings.ERP_BACKEND_URL}/api/auth/corporates/{corporate_id}/"
-            service_key = getattr(settings, 'INVENTORY_SERVICE_SECRET', '')
+            # Use ERP_SERVICE_SECRET for authentication with accounting service
+            service_key = getattr(settings, 'ERP_SERVICE_SECRET', '') or getattr(settings, 'INVENTORY_SERVICE_SECRET', '')
             if not service_key:
-                logger.error("INVENTORY_SERVICE_SECRET not configured")
+                logger.error("ERP_SERVICE_SECRET not configured")
                 return None
                 
             resp = requests.get(

@@ -15,8 +15,8 @@ class TransactionLog(BaseModel):
 
     reference = models.CharField(max_length=64, blank=True, db_index=True)
     action = models.CharField(max_length=100, db_index=True)
-    user_id = models.PositiveIntegerField(null=True, blank=True)
-    corporate_id = models.PositiveIntegerField(null=True, blank=True)
+    user_id = models.UUIDField(null=True, blank=True)
+    corporate_id = models.UUIDField(null=True, blank=True)
     message = models.TextField(blank=True)
     state = models.CharField(max_length=20, choices=STATE_CHOICES, default="Active")
     source_ip = models.CharField(max_length=45, blank=True)
@@ -33,8 +33,8 @@ class TransactionLog(BaseModel):
 class Notification(BaseModel):
     """In-app and email notification record. Used by NotificationBus."""
 
-    recipient_id = models.PositiveIntegerField(db_index=True)
-    corporate_id = models.PositiveIntegerField(null=True, blank=True)
+    recipient_id = models.UUIDField(db_index=True)
+    corporate_id = models.UUIDField(null=True, blank=True)
     notification_type = models.CharField(max_length=30, default="email")  # email, in_app, sms
     title = models.CharField(max_length=200)
     message = models.TextField(blank=True)

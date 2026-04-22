@@ -338,14 +338,17 @@ def list_products_integrated(request):
         total = products.count()
         start = (page - 1) * page_size
         end = start + page_size
-        products = products[start:end]
+        products_page = products[start:end]
+        
+        # Calculate next/previous URLs
+        has_next = end < total
+        has_previous = page > 1
         
         return Response({
-            'success': True,
-            'total': total,
-            'page': page,
-            'page_size': page_size,
-            'products': ProductSerializer(products, many=True).data
+            'count': total,
+            'next': f'?page={page + 1}&page_size={page_size}' if has_next else None,
+            'previous': f'?page={page - 1}&page_size={page_size}' if has_previous else None,
+            'results': ProductSerializer(products_page, many=True).data
         }, status=status.HTTP_200_OK)
         
     except Exception as e:

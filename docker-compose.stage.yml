@@ -4,7 +4,7 @@ services:
     container_name: postgres_inventory_stage
     restart: unless-stopped
     volumes:
-      - /mnt/quidpath-inventory-db-stage/postgres:/var/lib/postgresql/data
+      - /mnt/ebs/inventory/postgres_db_stage_data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -16,7 +16,13 @@ services:
       retries: 5
     networks:
       - inventory_network
-      - quidpath_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: inventory_redis_stage
+    restart: unless-stopped
+    networks:
+      - inventory_network
 
   backend:
     image: ${IMAGE_TAG}
@@ -27,22 +33,52 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       DATABASE_URL: ${DATABASE_URL}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: postgres_inventory_stage
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       SECRET_KEY: ${SECRET_KEY}
       INVENTORY_SERVICE_SECRET: ${INVENTORY_SERVICE_SECRET}
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
-      ERP_BACKEND_URL: ${ERP_BACKEND_URL}
-      REDIS_URL: ${REDIS_URL}
+      ERP_SERVICE_SECRET: ${ERP_SERVICE_SECRET}
+      POS_SERVICE_SECRET: ${POS_SERVICE_SECRET}
+      CRM_SERVICE_SECRET: ${CRM_SERVICE_SECRET}
+      HRM_SERVICE_SECRET: ${HRM_SERVICE_SECRET}
+      PROJECTS_SERVICE_SECRET: ${PROJECTS_SERVICE_SECRET}
+      BILLING_SERVICE_SECRET: ${BILLING_SERVICE_SECRET}
+      REDIS_URL: redis://redis:6379/0
       DJANGO_SETTINGS_MODULE: inventory_service.settings.stage
       DJANGO_ENV: stage
     volumes:
-      - /mnt/quidpath-inventory-stage-data/media:/app/media
-      - /mnt/quidpath-inventory-stage-data/staticfiles:/app/staticfiles
+      - /mnt/ebs/inventory/media_stage:/app/media
+      - /mnt/ebs/inventory/staticfiles_stage:/app/staticfiles
+    networks:
+      - inventory_network
+      - quidpath_network
+
+  celery:
+    image: ${IMAGE_TAG}
+    container_name: inventory-celery-stage
+    restart: unless-stopped
+    command: celery -A inventory_service worker -l info
+    depends_on:
+      - redis
+      - backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: postgres_inventory_stage
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      SECRET_KEY: ${SECRET_KEY}
+      INVENTORY_SERVICE_SECRET: ${INVENTORY_SERVICE_SECRET}
+      REDIS_URL: redis://redis:6379/0
+      DJANGO_SETTINGS_MODULE: inventory_service.settings.stage
     networks:
       - inventory_network
       - quidpath_network

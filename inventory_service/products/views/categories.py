@@ -74,6 +74,23 @@ def uom_list_create(request):
         return ResponseProvider.method_not_allowed(["GET", "POST"])
     create_data = {k: v for k, v in data.items() if k in ("category_id", "name", "symbol", "factor", "rounding", "is_base", "is_active")}
     create_data["corporate_id"] = corporate_id
+    
+    # Validate required fields
+    if not create_data.get("name"):
+        return ResponseProvider.error_response("name is required", status=400)
+    if not create_data.get("symbol"):
+        return ResponseProvider.error_response("symbol is required", status=400)
+    
+    # If no category provided, get or create a default "Unit" category
+    if not create_data.get("category_id"):
+        from inventory_service.products.models import UnitOfMeasureCategory
+        default_category, _ = UnitOfMeasureCategory.objects.get_or_create(
+            corporate_id=corporate_id,
+            name="Unit",
+            defaults={"name": "Unit"}
+        )
+        create_data["category_id"] = str(default_category.id)
+    
     try:
         created = registry.database("unitofmeasure", "create", data=create_data)
     except Exception as e:
