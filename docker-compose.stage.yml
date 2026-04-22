@@ -4,7 +4,7 @@ services:
     container_name: postgres_inventory_stage
     restart: unless-stopped
     volumes:
-      - /mnt/ebs/inventory/postgres_db_stage_data:/var/lib/postgresql/data
+      - /mnt/ebs/inventory/postgres_db_stage_data_v2:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
