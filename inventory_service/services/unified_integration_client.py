@@ -773,37 +773,95 @@ class UnifiedIntegrationClient:
     # ==================== HEALTH CHECK ====================
     
     def check_service_connectivity(self, corporate_id: str) -> Dict:
-        """Check connectivity to all integrated services"""
+        """
+        Check connectivity to all integrated services
+        Uses authenticated endpoints with ERP_SERVICE_SECRET to verify actual service availability
+        """
+        import time
+        
+        # Use authenticated endpoints that we know exist
+        # For accounting, we can use the users endpoint with a test user ID
+        # For other services, we'll use their root API endpoints
         services = {
-            'Accounting': (self.accounting_url, '/api/auth/health/'),
-            'POS': (self.pos_url, '/health/'),
-            'CRM': (self.crm_url, '/health/'),
-            'HRM': (self.hrm_url, '/health/'),
-            'Projects': (self.projects_url, '/health/'),
+            'Accounting': {
+                'url': self.accounting_url,
+                'path': f'/api/auth/users/{corporate_id}/',  # Use corporate_id as test
+                'secret': self.erp_service_secret,
+                'method': 'GET'
+            },
+            'POS': {
+                'url': self.pos_url,
+                'path': '/api/pos/products/',
+                'secret': self.erp_service_secret,
+                'method': 'GET'
+            },
+            'CRM': {
+                'url': self.crm_url,
+                'path': '/api/crm/contacts/',
+                'secret': self.erp_service_secret,
+                'method': 'GET'
+            },
+            'HRM': {
+                'url': self.hrm_url,
+                'path': '/api/hrm/employees/',
+                'secret': self.erp_service_secret,
+                'method': 'GET'
+            },
+            'Projects': {
+                'url': self.projects_url,
+                'path': '/api/projects/projects/',
+                'secret': self.erp_service_secret,
+                'method': 'GET'
+            },
         }
         
         results = {}
         
-        for service_name, (service_url, health_path) in services.items():
+        for service_name, config in services.items():
             try:
-                import time
                 start_time = time.time()
                 
-                # Health endpoints don't require authentication or corporate_id
+                # Use service-to-service authentication
+                headers = {
+                    'X-Service-Key': config['secret'],
+                    'X-Corporate-ID': str(corporate_id),
+                    'Content-Type': 'application/json',
+                }
+                
                 response = requests.get(
-                    f"{service_url}{health_path}",
+                    f"{config['url']}{config['path']}",
+                    headers=headers,
                     timeout=5
                 )
                 
                 response_time = time.time() - start_time
                 
+                # Accept 200 (success) or 404 (endpoint exists but resource not found)
+                # Both indicate the service is online and responding
+                if response.status_code in [200, 404]:
+                    results[service_name] = {
+                        'status': 'online',
+                        'response_time': round(response_time * 1000, 2)  # Convert to ms
+                    }
+                else:
+                    results[service_name] = {
+                        'status': 'error',
+                        'error': f'HTTP {response.status_code}'
+                    }
+                    
+            except requests.exceptions.ConnectionError as e:
                 results[service_name] = {
-                    'status': 'online' if response.status_code == 200 else 'error',
-                    'response_time': response_time
+                    'status': 'offline',
+                    'error': 'Connection refused - service not reachable'
+                }
+            except requests.exceptions.Timeout:
+                results[service_name] = {
+                    'status': 'offline',
+                    'error': 'Request timeout'
                 }
             except Exception as e:
                 results[service_name] = {
-                    'status': 'offline',
+                    'status': 'error',
                     'error': str(e)
                 }
         
