@@ -63,7 +63,7 @@ def reverse_fix(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('audit', '0002_change_ids_to_uuid'),
+        ('audit', '0001_initial'),
     ]
 
     operations = [
