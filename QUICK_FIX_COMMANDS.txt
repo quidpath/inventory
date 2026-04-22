@@ -1,0 +1,48 @@
+=== QUICK FIX COMMANDS FOR INVENTORY MIGRATION ISSUE ===
+
+Copy and paste these commands on the server (ubuntu@vps-3902112c):
+
+# ============================================
+# FIX STAGING
+# ============================================
+
+docker exec inventory-backend-stage python manage.py shell << 'EOF'
+from django.db import connection
+with connection.cursor() as cursor:
+    cursor.execute("DELETE FROM django_migrations WHERE app = 'audit' AND name = '0002_change_ids_to_uuid';")
+    cursor.execute("DELETE FROM django_migrations WHERE app = 'audit' AND name = '0003_fix_uuid_columns';")
+    print("✓ Removed old migration records")
+EOF
+
+docker restart inventory-backend-stage
+sleep 10
+docker logs --tail 50 inventory-backend-stage
+
+# ============================================
+# FIX PRODUCTION
+# ============================================
+
+docker exec inventory-backend python manage.py shell << 'EOF'
+from django.db import connection
+with connection.cursor() as cursor:
+    cursor.execute("DELETE FROM django_migrations WHERE app = 'audit' AND name = '0002_change_ids_to_uuid';")
+    cursor.execute("DELETE FROM django_migrations WHERE app = 'audit' AND name = '0003_fix_uuid_columns';")
+    print("✓ Removed old migration records")
+EOF
+
+docker restart inventory-backend
+sleep 10
+docker logs --tail 50 inventory-backend
+
+# ============================================
+# VERIFY
+# ============================================
+
+docker ps | grep inventory-backend
+curl -I https://stage-inventory.quidpath.com/api/inventory/health/
+curl -I https://api.quidpath.com/api/inventory/health/
+
+# ============================================
+# Expected: Both containers show "Up" status
+# Expected: Both health checks return 200 OK
+# ============================================
