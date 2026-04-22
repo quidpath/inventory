@@ -26,7 +26,7 @@ services:
 
   backend:
     image: ${IMAGE_TAG}
-    container_name: inventory-backend
+    container_name: inventory-backend-prod
     restart: unless-stopped
     ports:
       - "127.0.0.1:8014:8000"
@@ -53,6 +53,13 @@ services:
       REDIS_URL: redis://redis:6379/0
       DJANGO_SETTINGS_MODULE: inventory_service.settings.prod
       DJANGO_ENV: prod
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
+      ERP_BACKEND_URL: ${ERP_BACKEND_URL}
+      POS_SERVICE_URL: ${POS_SERVICE_URL}
+      CRM_SERVICE_URL: ${CRM_SERVICE_URL}
+      HRM_SERVICE_URL: ${HRM_SERVICE_URL}
+      PROJECTS_SERVICE_URL: ${PROJECTS_SERVICE_URL}
     volumes:
       - /mnt/ebs/inventory/media:/app/media
       - /mnt/ebs/inventory/staticfiles:/app/staticfiles
@@ -62,7 +69,7 @@ services:
 
   celery:
     image: ${IMAGE_TAG}
-    container_name: inventory-celery
+    container_name: inventory-celery-prod
     restart: unless-stopped
     command: celery -A inventory_service worker -l info
     depends_on:
@@ -77,8 +84,19 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       SECRET_KEY: ${SECRET_KEY}
       INVENTORY_SERVICE_SECRET: ${INVENTORY_SERVICE_SECRET}
+      ERP_SERVICE_SECRET: ${ERP_SERVICE_SECRET}
+      POS_SERVICE_SECRET: ${POS_SERVICE_SECRET}
+      CRM_SERVICE_SECRET: ${CRM_SERVICE_SECRET}
+      HRM_SERVICE_SECRET: ${HRM_SERVICE_SECRET}
+      PROJECTS_SERVICE_SECRET: ${PROJECTS_SERVICE_SECRET}
+      BILLING_SERVICE_SECRET: ${BILLING_SERVICE_SECRET}
       REDIS_URL: redis://redis:6379/0
       DJANGO_SETTINGS_MODULE: inventory_service.settings.prod
+      ERP_BACKEND_URL: ${ERP_BACKEND_URL}
+      POS_SERVICE_URL: ${POS_SERVICE_URL}
+      CRM_SERVICE_URL: ${CRM_SERVICE_URL}
+      HRM_SERVICE_URL: ${HRM_SERVICE_URL}
+      PROJECTS_SERVICE_URL: ${PROJECTS_SERVICE_URL}
     networks:
       - inventory_network
       - quidpath_network
