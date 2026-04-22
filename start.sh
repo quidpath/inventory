@@ -28,7 +28,12 @@ echo "Checking migration state..."
 $PYTHON check_and_fix_migrations.py || echo "Migration check skipped"
 
 echo "Running migrations..."
-$PYTHON manage.py migrate --noinput
+if ! $PYTHON manage.py migrate --noinput; then
+  echo "ERROR: Migration failed! Check logs above for details."
+  echo "Container will exit to prevent restart loop."
+  echo "Fix the migration issues in the code and redeploy."
+  exit 1
+fi
 
 echo "Collecting static files..."
 $PYTHON manage.py collectstatic --noinput

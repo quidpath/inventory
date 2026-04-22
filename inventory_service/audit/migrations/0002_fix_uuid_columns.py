@@ -8,6 +8,19 @@ def fix_uuid_columns(apps, schema_editor):
     This is necessary because AlterField doesn't always work for integer->UUID conversion.
     """
     with schema_editor.connection.cursor() as cursor:
+        # Check if the table exists first
+        cursor.execute("""
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_name = 'audit_transactionlog'
+            );
+        """)
+        table_exists = cursor.fetchone()[0]
+        
+        if not table_exists:
+            # Tables don't exist yet, skip this migration
+            return
+        
         # Check if columns are still integer type
         cursor.execute("""
             SELECT data_type 
