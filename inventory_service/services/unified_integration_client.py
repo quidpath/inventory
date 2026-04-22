@@ -836,9 +836,9 @@ class UnifiedIntegrationClient:
                 
                 response_time = time.time() - start_time
                 
-                # Accept 200 (success) or 404 (endpoint exists but resource not found)
-                # Both indicate the service is online and responding
-                if response.status_code in [200, 404]:
+                # Accept 200 (success), 401 (auth required - service is up), or 404 (endpoint exists)
+                # All indicate the service is online and responding
+                if response.status_code in [200, 401, 404]:
                     results[service_name] = {
                         'status': 'online',
                         'response_time': round(response_time * 1000, 2)  # Convert to ms

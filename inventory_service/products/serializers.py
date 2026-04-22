@@ -119,12 +119,16 @@ class ProductSerializer(serializers.ModelSerializer):
     variants = ProductVariantSerializer(many=True, read_only=True)
     images = ProductImageSerializer(many=True, read_only=True)
     
+    # Accept both uom and uom_id from frontend
+    uom_id = serializers.UUIDField(write_only=True, required=False)
+    category_id = serializers.UUIDField(write_only=True, required=False)
+    
     class Meta:
         model = Product
         fields = [
             'id', 'corporate_id', 'internal_reference', 'name', 'description',
             'description_purchase', 'description_sale', 'product_type',
-            'category', 'category_name', 'uom', 'uom_name', 'uom_symbol',
+            'category', 'category_id', 'category_name', 'uom', 'uom_id', 'uom_name', 'uom_symbol',
             'uom_purchase', 'uom_purchase_name', 'costing_method',
             'standard_price', 'list_price', 'taxes_included', 'tax_rate',
             'weight', 'volume', 'barcode', 'hs_code', 'is_active',
@@ -133,6 +137,18 @@ class ProductSerializer(serializers.ModelSerializer):
             'created_by', 'created_at', 'updated_at', 'variants', 'images'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def validate(self, data):
+        """Handle uom_id and category_id from frontend"""
+        # If uom_id is provided, use it for uom
+        if 'uom_id' in data:
+            data['uom_id'] = data.pop('uom_id')
+        
+        # If category_id is provided, use it for category
+        if 'category_id' in data:
+            data['category_id'] = data.pop('category_id')
+        
+        return data
 
 
 class ProductListSerializer(serializers.ModelSerializer):
