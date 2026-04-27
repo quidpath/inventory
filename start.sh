@@ -45,6 +45,9 @@ else
   echo "Skipping superuser creation - environment variables not set (DJANGO_SUPERUSER_USERNAME, DJANGO_SUPERUSER_EMAIL, DJANGO_SUPERUSER_PASSWORD)"
 fi
 
+echo "Creating default storage locations for warehouses..."
+$PYTHON manage.py create_default_locations || echo "Default locations creation skipped or failed"
+
 echo "Starting Gunicorn..."
 exec gunicorn inventory_service.wsgi:application \
     --bind 0.0.0.0:${PORT:-8000} \
