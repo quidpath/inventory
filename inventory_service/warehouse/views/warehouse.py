@@ -28,6 +28,20 @@ def warehouse_list_create(request):
     create_data["corporate_id"] = corporate_id
     try:
         created = registry.database("warehouse", "create", data=create_data)
+        # Automatically create a default storage location for the warehouse
+        try:
+            default_location_data = {
+                "warehouse_id": created["id"],
+                "name": "Main Storage",
+                "complete_name": "Main Storage",
+                "location_type": "internal",
+                "is_active": True,
+            }
+            registry.database("storagelocation", "create", data=default_location_data)
+        except Exception as loc_error:
+            # Log but don't fail warehouse creation if location creation fails
+            import logging
+            logging.getLogger(__name__).warning(f"Failed to create default location for warehouse {created['id']}: {loc_error}")
     except Exception as e:
         return ResponseProvider.error_response(str(e), status=400)
     TransactionLogBase.log("warehouse_created", user=user_id, message="Warehouse created", state_name="Completed", request=request)
