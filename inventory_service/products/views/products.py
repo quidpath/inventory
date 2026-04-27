@@ -35,9 +35,23 @@ def product_list_create(request):
         if is_active is not None:
             q &= Q(is_active=is_active.lower() == "true" if isinstance(is_active, str) else bool(is_active))
         from inventory_service.products.models import Product
+        from inventory_service.stock.models import StockLevel
+        from django.db.models import Sum
         qs = Product.objects.filter(q).order_by("name")
         page_qs, meta = paginate_qs(qs, request)
         items = registry.serialize_data(page_qs)
+        # Add stock quantity to each product
+        product_ids = [item["id"] for item in items]
+        stock_levels = {}
+        if product_ids:
+            stock_quants = StockLevel.objects.filter(
+                product_id__in=product_ids,
+                corporate_id=corporate_id
+            ).values('product_id').annotate(total_quantity=Sum('quantity'))
+            for sq in stock_quants:
+                stock_levels[str(sq['product_id'])] = float(sq['total_quantity'] or 0)
+        for item in items:
+            item['quantity_on_hand'] = stock_levels.get(str(item['id']), 0)
         return ResponseProvider.success_response(data={"results": items, **meta}, status=200)
     if request.method != "POST":
         return ResponseProvider.method_not_allowed(["GET", "POST"])
