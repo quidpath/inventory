@@ -5,6 +5,7 @@ from inventory_service.core.utils.request_parser import get_clean_data
 from inventory_service.core.utils.response import ResponseProvider
 from inventory_service.core.utils.log_base import TransactionLogBase
 from inventory_service.core.services.registry import ServiceRegistry
+from inventory_service.warehouse.serializers import WarehouseSerializer, WarehouseListSerializer, StorageLocationSerializer
 
 
 @csrf_exempt
@@ -21,7 +22,13 @@ def warehouse_list_create(request):
         if (data.get("active_only") or request.GET.get("active_only", "")).lower() == "true":
             filter_data["is_active"] = True
         items = registry.database("warehouse", "filter", data=filter_data)
-        return ResponseProvider.success_response(data=items, status=200)
+        # Use serializer for consistent output
+        from inventory_service.warehouse.models import Warehouse
+        warehouses = Warehouse.objects.filter(corporate_id=corporate_id)
+        if (data.get("active_only") or request.GET.get("active_only", "")).lower() == "true":
+            warehouses = warehouses.filter(is_active=True)
+        serializer = WarehouseListSerializer(warehouses, many=True)
+        return ResponseProvider.success_response(data={"results": serializer.data, "count": warehouses.count()}, status=200)
     if request.method != "POST":
         return ResponseProvider.method_not_allowed(["GET", "POST"])
     create_data = {k: v for k, v in data.items() if k in ("name", "short_name", "address_line1", "address_line2", "city", "country", "phone", "email", "is_active")}
@@ -42,10 +49,14 @@ def warehouse_list_create(request):
             # Log but don't fail warehouse creation if location creation fails
             import logging
             logging.getLogger(__name__).warning(f"Failed to create default location for warehouse {created['id']}: {loc_error}")
+        # Return serialized data
+        from inventory_service.warehouse.models import Warehouse
+        warehouse = Warehouse.objects.get(id=created["id"])
+        serializer = WarehouseSerializer(warehouse)
+        return ResponseProvider.success_response(data=serializer.data, message="Created", status=201)
     except Exception as e:
         return ResponseProvider.error_response(str(e), status=400)
     TransactionLogBase.log("warehouse_created", user=user_id, message="Warehouse created", state_name="Completed", request=request)
-    return ResponseProvider.success_response(data=created, message="Created", status=201)
 
 
 @csrf_exempt
@@ -56,25 +67,30 @@ def warehouse_detail(request, pk):
     if not corporate_id:
         return ResponseProvider.error_response("Unauthorized", status=401)
     registry = ServiceRegistry()
+    from inventory_service.warehouse.models import Warehouse
     try:
-        wh = registry.database("warehouse", "get", data={"id": pk, "corporate_id": corporate_id})
-    except Exception:
+        warehouse = Warehouse.objects.get(id=pk, corporate_id=corporate_id)
+    except Warehouse.DoesNotExist:
         return ResponseProvider.error_response("Not found", status=404)
     if request.method == "GET":
-        locations = registry.database("storagelocation", "filter", data={"warehouse_id": pk, "parent_id": None})
-        wh["locations"] = locations
-        return ResponseProvider.success_response(data=wh, status=200)
+        serializer = WarehouseSerializer(warehouse)
+        return ResponseProvider.success_response(data=serializer.data, status=200)
     if request.method == "DELETE":
-        registry.database("warehouse", "update", instance_id=pk, data={"is_active": False})
+        warehouse.is_active = False
+        warehouse.save()
         return ResponseProvider.success_response(message="Deactivated", status=200)
     update_data = {k: v for k, v in data.items() if k in ("name", "short_name", "address_line1", "address_line2", "city", "country", "phone", "email", "is_active")}
     if not update_data:
-        return ResponseProvider.success_response(data=wh, status=200)
+        serializer = WarehouseSerializer(warehouse)
+        return ResponseProvider.success_response(data=serializer.data, status=200)
     try:
-        updated = registry.database("warehouse", "update", instance_id=pk, data=update_data)
+        for key, value in update_data.items():
+            setattr(warehouse, key, value)
+        warehouse.save()
+        serializer = WarehouseSerializer(warehouse)
+        return ResponseProvider.success_response(data=serializer.data, status=200)
     except Exception as e:
         return ResponseProvider.error_response(str(e), status=400)
-    return ResponseProvider.success_response(data=updated, status=200)
 
 
 @csrf_exempt
